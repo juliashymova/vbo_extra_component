@@ -1,0 +1,8 @@
+name = VBO extra component
+description = Adds an extra component after the VBO module has finished work.
+package = "Easybranding"
+core = 7.x
+dependencies[] = views_bulk_operations
+dependencies[] = rules
+
+files[] = views_bulk_operations_extra_handler_field_operations.inc

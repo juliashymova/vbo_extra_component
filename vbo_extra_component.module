@@ -1,0 +1,71 @@
+<?php
+
+function vbo_extra_component_views_bulk_operations_form_alter(&$form, &$form_state, $vbo) {
+
+  //Check if vbo extra component is set
+  if(isset($vbo->options['vbo_extra_component']['component'])) {
+    $form['actions']['submit']['#submit'][] = 'vbo_extra_component_submit';
+
+    if ($vbo->get_vbo_option('display_type') == 0) {
+      $form['select']['submit']['#submit'][] = 'vbo_extra_component_submit';
+    }
+    else {
+      foreach ($vbo->get_selected_operations() as $operation_id => $operation) {
+        $form['select'][$operation_id]['#submit'][] = 'vbo_extra_component_submit';
+      }
+    }
+  }
+
+}
+
+function vbo_extra_component_submit($form, &$form_state) {
+  if(isset($form_state['redirect'])) {
+
+    $vbo = _views_bulk_operations_get_field($form_state['build_info']['args'][0]);
+
+    $params = array();
+    $params['redirect'] = $form_state['redirect'];
+    $params['component'] = $vbo->options['vbo_extra_component']['component'];
+
+    $_SESSION['vbo_extra_params'] = $params;
+
+    $form_state['redirect'] = 'vbo_extra_component';
+
+  }
+}
+
+
+/**
+ * Implements hook_menu().
+ */
+function vbo_extra_component_menu() {
+  $items['vbo_extra_component'] = array(
+      'page callback' => 'vbo_extra_component_invoke_component',
+      'access callback' => 'vbo_extra_component_access',
+  );
+  return $items;
+}
+
+function vbo_extra_component_invoke_component() {
+  $params = $_SESSION['vbo_extra_params'];
+  rules_invoke_component($params['component']);
+  unset($_SESSION['vbo_extra_params']);
+  drupal_goto($params['redirect']['path'], $params['redirect'][0]);
+
+}
+
+function vbo_extra_component_access() {
+  if(isset($_SESSION['vbo_extra_params'])) {
+    return TRUE;
+  }
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function vbo_extra_component_views_api() {
+  return array(
+      'api' => 3,
+      'path' => drupal_get_path('module', 'vbo_extra_component'),
+  );
+}
